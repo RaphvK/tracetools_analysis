@@ -172,9 +172,11 @@ class Ros2Handler(EventHandler):
     def _handle_rmw_publish(
         self, event: Dict, metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        meta_timestamp = metadata.timestamp
+        handle = get_field(event, 'rmw_publisher_handle')
+        timestamp = get_field(event, 'timestamp')
         message = get_field(event, 'message')
-        self.data.add_rmw_publish_instance(timestamp, message)
+        self.data.add_rmw_publish_instance(meta_timestamp, handle, timestamp, message)
 
     def _handle_rmw_subscription_init(
         self, event: Dict, metadata: EventMetadata,
