@@ -91,6 +91,10 @@ class Ros2Handler(EventHandler):
                 self._handle_rcl_lifecycle_state_machine_init,
             'ros2:rcl_lifecycle_transition':
                 self._handle_rcl_lifecycle_transition,
+            'ros2:message_link_partial_sync':
+                self._handle_message_link_partial_sync,
+            'ros2:message_link_periodic_async':
+                self._handle_message_link_periodic_async,
         }
         super().__init__(
             handler_map=handler_map,
@@ -337,3 +341,19 @@ class Ros2Handler(EventHandler):
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
         self.data.add_lifecycle_state_transition(state_machine, start_label, goal_label, timestamp)
+
+    def _handle_message_link_partial_sync(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_partial_sync(subs, pubs, timestamp)
+
+    def _handle_message_link_periodic_async(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_periodic_async(subs, pubs, timestamp)

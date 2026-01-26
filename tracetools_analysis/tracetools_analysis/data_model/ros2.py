@@ -56,6 +56,9 @@ class Ros2DataModel(DataModel):
         self._rclcpp_take_instances: DataModelIntermediateStorage = []
         self._callback_instances: DataModelIntermediateStorage = []
         self._lifecycle_transitions: DataModelIntermediateStorage = []
+        # Message links
+        self._message_links_partial_sync: DataModelIntermediateStorage = []
+        self._message_links_periodic_async: DataModelIntermediateStorage = []
 
     def add_context(
         self, context_handle, timestamp, pid, version
@@ -269,6 +272,24 @@ class Ros2DataModel(DataModel):
             'timestamp': timestamp,
         })
 
+    def add_message_link_partial_sync(
+        self, subs, pubs, timestamp
+    ) -> None:
+        self._message_links_partial_sync.append({
+            'subs': subs,
+            'pubs': pubs,
+            'timestamp': timestamp,
+        })
+
+    def add_message_link_periodic_async(
+        self, subs, pubs, timestamp
+    ) -> None:
+        self._message_links_periodic_async.append({
+            'subs': subs,
+            'pubs': pubs,
+            'timestamp': timestamp,
+        })
+
     def _finalize(self) -> None:
         # Some of the lists of dicts might be empty, and setting
         # the index for an empty dataframe leads to an error
@@ -323,6 +344,8 @@ class Ros2DataModel(DataModel):
         self.rclcpp_take_instances = pd.DataFrame.from_dict(self._rclcpp_take_instances)
         self.callback_instances = pd.DataFrame.from_dict(self._callback_instances)
         self.lifecycle_transitions = pd.DataFrame.from_dict(self._lifecycle_transitions)
+        self.message_links_partial_sync = pd.DataFrame.from_dict(self._message_links_partial_sync)
+        self.message_links_periodic_async = pd.DataFrame.from_dict(self._message_links_periodic_async)
 
     def print_data(self) -> None:
         print('====================ROS 2 DATA MODEL===================')
@@ -391,4 +414,10 @@ class Ros2DataModel(DataModel):
         print()
         print('Lifecycle transitions:')
         print(self.lifecycle_transitions.to_string())
+        print()
+        print('Message links (partial sync):')
+        print(self.message_links_partial_sync.to_string())
+        print()
+        print('Message links (periodic async):')
+        print(self.message_links_periodic_async.to_string())
         print('==================================================')
