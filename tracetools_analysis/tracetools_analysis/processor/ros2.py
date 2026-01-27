@@ -167,7 +167,7 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_rcl_publish_instance(handle, timestamp, message)
+        self.data.add_rcl_publish_instance(handle, timestamp, message, metadata.pid, metadata.tid)
 
     def _handle_rmw_publish(
         self, event: Dict, metadata: EventMetadata,
@@ -324,7 +324,9 @@ class Ros2Handler(EventHandler):
                 callback_object,
                 metadata_start.timestamp,
                 duration,
-                bool(is_intra_process))
+                bool(is_intra_process),
+                metadata.pid,
+                metadata.tid)
         else:
             print(f'No matching callback start for callback object "{callback_object}"')
 
