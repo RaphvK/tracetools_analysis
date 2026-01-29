@@ -167,7 +167,10 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_rcl_publish_instance(handle, timestamp, message, metadata.procname, metadata.pid, metadata.tid)
+        self.data.add_rcl_publish_instance(
+            handle, timestamp, message,
+            metadata.procname, metadata.pid, metadata.tid
+        )
 
     def _handle_rmw_publish(
         self, event: Dict, metadata: EventMetadata,

@@ -352,8 +352,10 @@ class Ros2DataModel(DataModel):
         self.rclcpp_take_instances = pd.DataFrame.from_dict(self._rclcpp_take_instances)
         self.callback_instances = pd.DataFrame.from_dict(self._callback_instances)
         self.lifecycle_transitions = pd.DataFrame.from_dict(self._lifecycle_transitions)
-        self.message_links_partial_sync = pd.DataFrame.from_dict(self._message_links_partial_sync)
-        self.message_links_periodic_async = pd.DataFrame.from_dict(self._message_links_periodic_async)
+        self.message_links_partial_sync = pd.DataFrame.from_dict(
+            self._message_links_partial_sync)
+        self.message_links_periodic_async = pd.DataFrame.from_dict(
+            self._message_links_periodic_async)
 
     def print_data(self) -> None:
         print('====================ROS 2 DATA MODEL===================')
