@@ -226,8 +226,9 @@ class Ros2Handler(EventHandler):
         message = get_field(event, 'message')
         source_timestamp = get_field(event, 'source_timestamp')
         taken = bool(get_field(event, 'taken'))
+        payload_size = get_field(event, 'payload_size', raise_if_not_found=False)
         self.data.add_rmw_take_instance(
-            subscription_handle, timestamp, message, source_timestamp, taken
+            subscription_handle, timestamp, message, source_timestamp, taken, payload_size
         )
 
     def _handle_rcl_take(

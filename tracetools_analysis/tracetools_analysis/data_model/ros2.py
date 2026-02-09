@@ -236,7 +236,7 @@ class Ros2DataModel(DataModel):
         })
 
     def add_rmw_take_instance(
-        self, subscription_handle, timestamp, message, source_timestamp, taken
+        self, subscription_handle, timestamp, message, source_timestamp, taken, payload_size
     ) -> None:
         self._rmw_take_instances.append({
             'subscription_handle': subscription_handle,
@@ -244,6 +244,7 @@ class Ros2DataModel(DataModel):
             'message': message,
             'source_timestamp': source_timestamp,
             'taken': taken,
+            'payload_size': payload_size
         })
 
     def add_rcl_take_instance(
