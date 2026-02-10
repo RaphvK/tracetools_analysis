@@ -63,6 +63,8 @@ class Ros2Handler(EventHandler):
                 self._handle_rclcpp_subscription_init,
             'ros2:rclcpp_subscription_callback_added':
                 self._handle_rclcpp_subscription_callback_added,
+            'ros2:rmw_payload':
+                self._handle_rmw_payload,
             'ros2:rmw_take':
                 self._handle_rmw_take,
             'ros2:rcl_take':
@@ -229,6 +231,17 @@ class Ros2Handler(EventHandler):
         payload_size = get_field(event, 'payload_size', raise_if_not_found=False)
         self.data.add_rmw_take_instance(
             subscription_handle, timestamp, message, source_timestamp, taken, payload_size
+        )
+
+    def _handle_rmw_payload(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        subscription_handle = get_field(event, 'rmw_subscription_handle')
+        timestamp = metadata.timestamp
+        message = get_field(event, 'message')
+        payload_size = get_field(event, 'payload_size')
+        self.data.add_rmw_payload_instance(
+            subscription_handle, timestamp, message, payload_size
         )
 
     def _handle_rcl_take(
