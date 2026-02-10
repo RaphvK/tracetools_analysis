@@ -254,9 +254,9 @@ class Ros2DataModel(DataModel):
             'timestamp': timestamp,
             'message': message,
             'source_timestamp': source_timestamp,
-            'taken': taken
+            'taken': taken,
         })
-    
+
     def add_rcl_take_instance(
         self, timestamp, message
     ) -> None:
