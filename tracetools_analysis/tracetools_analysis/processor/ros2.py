@@ -53,6 +53,8 @@ class Ros2Handler(EventHandler):
                 self._handle_rclcpp_publish,
             'ros2:rcl_publish':
                 self._handle_rcl_publish,
+            'ros2:rmw_payload':
+                self._handle_rmw_payload,
             'ros2:rmw_publish':
                 self._handle_rmw_publish,
             'ros2:rmw_subscription_init':
@@ -170,6 +172,17 @@ class Ros2Handler(EventHandler):
         self.data.add_rcl_publish_instance(
             handle, timestamp, message,
             metadata.procname, metadata.pid, metadata.tid
+        )
+
+    def _handle_rmw_payload(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        subscription_handle = get_field(event, 'rmw_subscription_handle')
+        timestamp = metadata.timestamp
+        message = get_field(event, 'message')
+        payload_size = get_field(event, 'payload_size')
+        self.data.add_rmw_payload_instance(
+            subscription_handle, timestamp, message, payload_size
         )
 
     def _handle_rmw_publish(
