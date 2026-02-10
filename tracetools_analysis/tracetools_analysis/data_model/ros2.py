@@ -50,8 +50,8 @@ class Ros2DataModel(DataModel):
         # Events (multiple instances, may not have a meaningful index)
         self._rclcpp_publish_instances: DataModelIntermediateStorage = []
         self._rcl_publish_instances: DataModelIntermediateStorage = []
-        self._rmw_publish_instances: DataModelIntermediateStorage = []
         self._rmw_payload_instances: DataModelIntermediateStorage = []
+        self._rmw_publish_instances: DataModelIntermediateStorage = []
         self._rmw_take_instances: DataModelIntermediateStorage = []
         self._rcl_take_instances: DataModelIntermediateStorage = []
         self._rclcpp_take_instances: DataModelIntermediateStorage = []
@@ -122,6 +122,16 @@ class Ros2DataModel(DataModel):
             'procname': procname,
             'pid': pid,
             'tid': tid,
+        })
+
+    def add_rmw_payload_instance(
+        self, subscription_handle, timestamp, message, payload_size
+    ) -> None:
+        self._rmw_payload_instances.append({
+            'subscription_handle': subscription_handle,
+            'timestamp': timestamp,
+            'message': message,
+            'payload_size': payload_size,
         })
 
     def add_rmw_publish_instance(
@@ -248,16 +258,6 @@ class Ros2DataModel(DataModel):
             'payload_size': payload_size
         })
     
-    def add_rmw_payload_instance(
-        self, subscription_handle, timestamp, message, payload_size
-    ) -> None:
-        self._rmw_payload_instances.append({
-            'subscription_handle': subscription_handle,
-            'timestamp': timestamp,
-            'message': message,
-            'payload_size': payload_size,
-        })
-
     def add_rcl_take_instance(
         self, timestamp, message
     ) -> None:
@@ -358,8 +358,8 @@ class Ros2DataModel(DataModel):
                 'state_machine_handle', inplace=True, drop=True)
         self.rclcpp_publish_instances = pd.DataFrame.from_dict(self._rclcpp_publish_instances)
         self.rcl_publish_instances = pd.DataFrame.from_dict(self._rcl_publish_instances)
-        self.rmw_publish_instances = pd.DataFrame.from_dict(self._rmw_publish_instances)
         self.rmw_payload_instances = pd.DataFrame.from_dict(self._rmw_payload_instances)
+        self.rmw_publish_instances = pd.DataFrame.from_dict(self._rmw_publish_instances)
         self.rmw_take_instances = pd.DataFrame.from_dict(self._rmw_take_instances)
         self.rcl_take_instances = pd.DataFrame.from_dict(self._rcl_take_instances)
         self.rclcpp_take_instances = pd.DataFrame.from_dict(self._rclcpp_take_instances)
@@ -420,14 +420,14 @@ class Ros2DataModel(DataModel):
         print('Publish instances (rcl):')
         print(self.rcl_publish_instances.to_string())
         print()
+        print('Payload instances (rmw):')
+        print(self.rmw_payload_instances.to_string())
+        print()
         print('Publish instances (rmw):')
         print(self.rmw_publish_instances.to_string())
         print()
         print('Take instances (rmw):')
         print(self.rmw_take_instances.to_string())
-        print()
-        print('Payload instances (rmw):')
-        print(self.rmw_payload_instances.to_string())
         print()
         print('Take instances (rcl):')
         print(self.rcl_take_instances.to_string())
