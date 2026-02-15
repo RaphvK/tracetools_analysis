@@ -17,6 +17,7 @@
 """Module for ROS data model utils."""
 
 from typing import Any
+from typing import Dict
 from typing import List
 from typing import Mapping
 from typing import Optional
@@ -504,7 +505,7 @@ class Ros2DataModelUtil(DataModelUtil):
 
     def get_lifecycle_node_state_intervals(
         self,
-    ) -> DataFrame:
+    ) -> Dict[int, DataFrame]:
         """
         Get state intervals (start, end) for all lifecycle nodes.
 

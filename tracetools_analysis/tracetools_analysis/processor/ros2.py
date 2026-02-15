@@ -329,8 +329,8 @@ class Ros2Handler(EventHandler):
                 duration,
                 bool(is_intra_process),
                 metadata_start.procname,
-                metadata.pid,
-                metadata.tid)
+                metadata_start.pid,
+                metadata_start.tid)
         else:
             print(f'No matching callback start for callback object "{callback_object}"')
 
