@@ -17,7 +17,6 @@
 """Module for ROS data model utils."""
 
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Mapping
 from typing import Optional
@@ -117,9 +116,6 @@ class Ros2DataModelUtil(DataModelUtil):
         """
         callback_instances = self.data.callback_instances
         callback_symbols = self.data.callback_symbols
-
-        if callback_instances.empty:
-            return {}
 
         # Get a list of callback objects
         callback_objects = set(callback_instances['callback_object'])
@@ -508,7 +504,7 @@ class Ros2DataModelUtil(DataModelUtil):
 
     def get_lifecycle_node_state_intervals(
         self,
-    ) -> Dict[int, DataFrame]:
+    ) -> DataFrame:
         """
         Get state intervals (start, end) for all lifecycle nodes.
 
@@ -523,11 +519,8 @@ class Ros2DataModelUtil(DataModelUtil):
         :return: dictionary with a dataframe (with each row containing state interval information)
             for each lifecycle node
         """
-        lifecycle_transitions = self.data.lifecycle_transitions.copy()
-        if lifecycle_transitions.empty:
-            return {}
-
         data = {}
+        lifecycle_transitions = self.data.lifecycle_transitions.copy()
         state_machine_handles = set(lifecycle_transitions['state_machine_handle'])
         for state_machine_handle in state_machine_handles:
             transitions = lifecycle_transitions.loc[

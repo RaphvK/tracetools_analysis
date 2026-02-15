@@ -20,7 +20,6 @@ from typing import Set
 from typing import Tuple
 
 from tracetools_read import get_field
-from tracetools_trace.tools import tracepoints as tp
 
 from . import EventHandler
 from . import EventMetadata
@@ -42,56 +41,60 @@ class Ros2Handler(EventHandler):
         """Create a Ros2Handler."""
         # Link a ROS trace event to its corresponding handling method
         handler_map: HandlerMap = {
-            tp.rcl_init:
+            'ros2:rcl_init':
                 self._handle_rcl_init,
-            tp.rcl_node_init:
+            'ros2:rcl_node_init':
                 self._handle_rcl_node_init,
-            tp.rmw_publisher_init:
+            'ros2:rmw_publisher_init':
                 self._handle_rmw_publisher_init,
-            tp.rcl_publisher_init:
+            'ros2:rcl_publisher_init':
                 self._handle_rcl_publisher_init,
-            tp.rclcpp_publish:
+            'ros2:rclcpp_publish':
                 self._handle_rclcpp_publish,
-            tp.rcl_publish:
+            'ros2:rcl_publish':
                 self._handle_rcl_publish,
-            tp.rmw_publish:
+            'ros2:rmw_publish':
                 self._handle_rmw_publish,
-            tp.rmw_subscription_init:
+            'ros2:rmw_subscription_init':
                 self._handle_rmw_subscription_init,
-            tp.rcl_subscription_init:
+            'ros2:rcl_subscription_init':
                 self._handle_rcl_subscription_init,
-            tp.rclcpp_subscription_init:
+            'ros2:rclcpp_subscription_init':
                 self._handle_rclcpp_subscription_init,
-            tp.rclcpp_subscription_callback_added:
+            'ros2:rclcpp_subscription_callback_added':
                 self._handle_rclcpp_subscription_callback_added,
-            tp.rmw_take:
+            'ros2:rmw_take':
                 self._handle_rmw_take,
-            tp.rcl_take:
+            'ros2:rcl_take':
                 self._handle_rcl_take,
-            tp.rclcpp_take:
+            'ros2:rclcpp_take':
                 self._handle_rclcpp_take,
-            tp.rcl_service_init:
+            'ros2:rcl_service_init':
                 self._handle_rcl_service_init,
-            tp.rclcpp_service_callback_added:
+            'ros2:rclcpp_service_callback_added':
                 self._handle_rclcpp_service_callback_added,
-            tp.rcl_client_init:
+            'ros2:rcl_client_init':
                 self._handle_rcl_client_init,
-            tp.rcl_timer_init:
+            'ros2:rcl_timer_init':
                 self._handle_rcl_timer_init,
-            tp.rclcpp_timer_callback_added:
+            'ros2:rclcpp_timer_callback_added':
                 self._handle_rclcpp_timer_callback_added,
-            tp.rclcpp_timer_link_node:
+            'ros2:rclcpp_timer_link_node':
                 self._handle_rclcpp_timer_link_node,
-            tp.rclcpp_callback_register:
+            'ros2:rclcpp_callback_register':
                 self._handle_rclcpp_callback_register,
-            tp.callback_start:
+            'ros2:callback_start':
                 self._handle_callback_start,
-            tp.callback_end:
+            'ros2:callback_end':
                 self._handle_callback_end,
-            tp.rcl_lifecycle_state_machine_init:
+            'ros2:rcl_lifecycle_state_machine_init':
                 self._handle_rcl_lifecycle_state_machine_init,
-            tp.rcl_lifecycle_transition:
+            'ros2:rcl_lifecycle_transition':
                 self._handle_rcl_lifecycle_transition,
+            'ros2:message_link_partial_sync':
+                self._handle_message_link_partial_sync,
+            'ros2:message_link_periodic_async':
+                self._handle_message_link_periodic_async,
         }
         super().__init__(
             handler_map=handler_map,
@@ -105,7 +108,7 @@ class Ros2Handler(EventHandler):
     @staticmethod
     def required_events() -> Set[str]:
         return {
-            tp.rcl_init,
+            'ros2:rcl_init',
         }
 
     @property
@@ -164,14 +167,19 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_rcl_publish_instance(handle, timestamp, message)
+        self.data.add_rcl_publish_instance(
+            handle, timestamp, message,
+            metadata.procname, metadata.pid, metadata.tid
+        )
 
     def _handle_rmw_publish(
         self, event: Dict, metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        meta_timestamp = metadata.timestamp
+        handle = get_field(event, 'rmw_publisher_handle')
+        timestamp = get_field(event, 'timestamp')
         message = get_field(event, 'message')
-        self.data.add_rmw_publish_instance(timestamp, message)
+        self.data.add_rmw_publish_instance(meta_timestamp, handle, timestamp, message)
 
     def _handle_rmw_subscription_init(
         self, event: Dict, metadata: EventMetadata,
@@ -319,7 +327,10 @@ class Ros2Handler(EventHandler):
                 callback_object,
                 metadata_start.timestamp,
                 duration,
-                bool(is_intra_process))
+                bool(is_intra_process),
+                metadata_start.procname,
+                metadata.pid,
+                metadata.tid)
         else:
             print(f'No matching callback start for callback object "{callback_object}"')
 
@@ -338,3 +349,19 @@ class Ros2Handler(EventHandler):
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
         self.data.add_lifecycle_state_transition(state_machine, start_label, goal_label, timestamp)
+
+    def _handle_message_link_partial_sync(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_partial_sync(subs, pubs, timestamp)
+
+    def _handle_message_link_periodic_async(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_periodic_async(subs, pubs, timestamp)
