@@ -109,12 +109,15 @@ class Ros2DataModel(DataModel):
         })
 
     def add_rcl_publish_instance(
-        self, publisher_handle, timestamp, message,
+        self, publisher_handle, timestamp, message, procname, pid, tid,
     ) -> None:
         self._rcl_publish_instances.append({
             'publisher_handle': publisher_handle,
             'timestamp': timestamp,
             'message': message,
+            'procname': procname,
+            'pid': pid,
+            'tid': tid,
         })
 
     def add_rmw_publish_instance(
@@ -215,13 +218,16 @@ class Ros2DataModel(DataModel):
         })
 
     def add_callback_instance(
-        self, callback_object, timestamp, duration, intra_process
+        self, callback_object, timestamp, duration, intra_process, procname, pid, tid
     ) -> None:
         self._callback_instances.append({
             'callback_object': callback_object,
             'timestamp': np.datetime64(timestamp, 'ns'),
             'duration': np.timedelta64(duration, 'ns'),
             'intra_process': intra_process,
+            'procname': procname,
+            'pid': pid,
+            'tid': tid,
         })
 
     def add_rmw_take_instance(
