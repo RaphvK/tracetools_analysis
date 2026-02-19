@@ -121,9 +121,11 @@ class Ros2DataModel(DataModel):
         })
 
     def add_rmw_publish_instance(
-        self, timestamp, message,
+        self, meta_timestamp, handle, timestamp, message,
     ) -> None:
         self._rmw_publish_instances.append({
+            '_timestamp': meta_timestamp,
+            'publisher_handle': handle,
             'timestamp': timestamp,
             'message': message,
         })
