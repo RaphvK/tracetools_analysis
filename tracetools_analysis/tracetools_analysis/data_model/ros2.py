@@ -56,6 +56,9 @@ class Ros2DataModel(DataModel):
         self._rclcpp_take_instances: DataModelIntermediateStorage = []
         self._callback_instances: DataModelIntermediateStorage = []
         self._lifecycle_transitions: DataModelIntermediateStorage = []
+        # Message links
+        self._message_links_partial_sync: DataModelIntermediateStorage = []
+        self._message_links_periodic_async: DataModelIntermediateStorage = []
 
     def add_context(
         self, context_handle, timestamp, pid, version
@@ -109,18 +112,23 @@ class Ros2DataModel(DataModel):
         })
 
     def add_rcl_publish_instance(
-        self, publisher_handle, timestamp, message,
+        self, publisher_handle, timestamp, message, procname, pid, tid,
     ) -> None:
         self._rcl_publish_instances.append({
             'publisher_handle': publisher_handle,
             'timestamp': timestamp,
             'message': message,
+            'procname': procname,
+            'pid': pid,
+            'tid': tid,
         })
 
     def add_rmw_publish_instance(
-        self, timestamp, message,
+        self, meta_timestamp, handle, timestamp, message,
     ) -> None:
         self._rmw_publish_instances.append({
+            '_timestamp': meta_timestamp,
+            'publisher_handle': handle,
             'timestamp': timestamp,
             'message': message,
         })
@@ -215,13 +223,16 @@ class Ros2DataModel(DataModel):
         })
 
     def add_callback_instance(
-        self, callback_object, timestamp, duration, intra_process
+        self, callback_object, timestamp, duration, intra_process, procname, pid, tid
     ) -> None:
         self._callback_instances.append({
             'callback_object': callback_object,
             'timestamp': np.datetime64(timestamp, 'ns'),
             'duration': np.timedelta64(duration, 'ns'),
             'intra_process': intra_process,
+            'procname': procname,
+            'pid': pid,
+            'tid': tid,
         })
 
     def add_rmw_take_instance(
@@ -266,6 +277,24 @@ class Ros2DataModel(DataModel):
             'state_machine_handle': state_machine_handle,
             'start_label': start_label,
             'goal_label': goal_label,
+            'timestamp': timestamp,
+        })
+
+    def add_message_link_partial_sync(
+        self, subs, pubs, timestamp
+    ) -> None:
+        self._message_links_partial_sync.append({
+            'subs': subs,
+            'pubs': pubs,
+            'timestamp': timestamp,
+        })
+
+    def add_message_link_periodic_async(
+        self, subs, pubs, timestamp
+    ) -> None:
+        self._message_links_periodic_async.append({
+            'subs': subs,
+            'pubs': pubs,
             'timestamp': timestamp,
         })
 
@@ -323,6 +352,8 @@ class Ros2DataModel(DataModel):
         self.rclcpp_take_instances = pd.DataFrame.from_dict(self._rclcpp_take_instances)
         self.callback_instances = pd.DataFrame.from_dict(self._callback_instances)
         self.lifecycle_transitions = pd.DataFrame.from_dict(self._lifecycle_transitions)
+        self.message_links_partial_sync = pd.DataFrame.from_dict(self._message_links_partial_sync)
+        self.message_links_periodic_async = pd.DataFrame.from_dict(self._message_links_periodic_async)
 
     def print_data(self) -> None:
         print('====================ROS 2 DATA MODEL===================')
@@ -391,4 +422,10 @@ class Ros2DataModel(DataModel):
         print()
         print('Lifecycle transitions:')
         print(self.lifecycle_transitions.to_string())
+        print()
+        print('Message links (partial sync):')
+        print(self.message_links_partial_sync.to_string())
+        print()
+        print('Message links (periodic async):')
+        print(self.message_links_periodic_async.to_string())
         print('==================================================')

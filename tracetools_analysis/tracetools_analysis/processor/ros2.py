@@ -92,6 +92,10 @@ class Ros2Handler(EventHandler):
                 self._handle_rcl_lifecycle_state_machine_init,
             tp.rcl_lifecycle_transition:
                 self._handle_rcl_lifecycle_transition,
+            tp.message_link_partial_sync:
+                self._handle_message_link_partial_sync,
+            tp.message_link_periodic_async:
+                self._handle_message_link_periodic_async,
         }
         super().__init__(
             handler_map=handler_map,
@@ -164,14 +168,19 @@ class Ros2Handler(EventHandler):
         handle = get_field(event, 'publisher_handle')
         timestamp = metadata.timestamp
         message = get_field(event, 'message')
-        self.data.add_rcl_publish_instance(handle, timestamp, message)
+        self.data.add_rcl_publish_instance(
+            handle, timestamp, message,
+            metadata.procname, metadata.pid, metadata.tid
+        )
 
     def _handle_rmw_publish(
         self, event: Dict, metadata: EventMetadata,
     ) -> None:
-        timestamp = metadata.timestamp
+        meta_timestamp = metadata.timestamp
+        handle = get_field(event, 'rmw_publisher_handle')
+        timestamp = get_field(event, 'timestamp')
         message = get_field(event, 'message')
-        self.data.add_rmw_publish_instance(timestamp, message)
+        self.data.add_rmw_publish_instance(meta_timestamp, handle, timestamp, message)
 
     def _handle_rmw_subscription_init(
         self, event: Dict, metadata: EventMetadata,
@@ -319,7 +328,10 @@ class Ros2Handler(EventHandler):
                 callback_object,
                 metadata_start.timestamp,
                 duration,
-                bool(is_intra_process))
+                bool(is_intra_process),
+                metadata_start.procname,
+                metadata_start.pid,
+                metadata_start.tid)
         else:
             print(f'No matching callback start for callback object "{callback_object}"')
 
@@ -338,3 +350,19 @@ class Ros2Handler(EventHandler):
         start_label = get_field(event, 'start_label')
         goal_label = get_field(event, 'goal_label')
         self.data.add_lifecycle_state_transition(state_machine, start_label, goal_label, timestamp)
+
+    def _handle_message_link_partial_sync(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_partial_sync(subs, pubs, timestamp)
+
+    def _handle_message_link_periodic_async(
+        self, event: Dict, metadata: EventMetadata,
+    ) -> None:
+        timestamp = metadata.timestamp
+        subs = get_field(event, 'subs')
+        pubs = get_field(event, 'pubs')
+        self.data.add_message_link_periodic_async(subs, pubs, timestamp)
